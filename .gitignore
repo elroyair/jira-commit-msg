@@ -1,0 +1,12 @@
+# IDE
+.vscode
+.idea
+
+# Python stuff
+.venv
+__pycache__
+.mypy_cache
+
+# Local testing
+.env
+dummyfile

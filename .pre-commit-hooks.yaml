@@ -1,0 +1,6 @@
+- id: jira-commit-msg
+  name: jira-commit-msg
+  description: Enforces branch naming and adds issue IDs to commits
+  entry: jira-commit-msg
+  language: python
+  stages: [commit-msg]

@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "jira-commit-msg"
+version = "0.9.0"
+description = "commit-msg hook to enforce branch naming and add issue IDs to commits"
+authors = ["Elroy Air <github@elroyair.com>"]
+repository = "https://github.com/elroyair/jira-commit-msg"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<3.11"
+GitPython = "^3.1.27"
+jira = "^3.5.2"
+python-dotenv = "^1.0.0"
+PyYAML = "^6.0.0"
+
+[tool.poetry.scripts]
+jira-commit-msg = "jira_commit_msg.main:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

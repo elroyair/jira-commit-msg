@@ -1,0 +1,52 @@
+name: Build & Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    name: pre-commit checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Run pre-commit checks
+        uses: ./.github/workflows/pre-commit-checks
+
+  test-run:
+    name: Test run
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+          installer-parallel: true
+
+      - name: Install dependencies
+        run: poetry install --no-interaction
+
+      - name: Test run
+        run: |
+          echo "some text" > dummyfile
+          poetry run jira-commit-msg ./dummyfile hotfix/TEST-123_do_something ./.jira-commit-msg-config.yaml -v
+          cat ./dummyfile
+          cat ./dummyfile | grep "\[TEST-123\] some text"

@@ -1,0 +1,12 @@
+# Docs for config: https://github.com/elroyair/jira-commit-msg
+
+excluded_branches:
+  - "main"
+
+accepted_branch_prefixes:
+  - "feature"
+  - "hotfix"
+  - "bugfix"
+  - "refactor"
+  - "sandbox"
+  - "maintenance"
