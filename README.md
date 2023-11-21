@@ -7,7 +7,7 @@ A git [commit-msg hook](https://git-scm.com/docs/githooks#_commit_msg) to enforc
 
 This tool uses the [pre-commit](https://pre-commit.com/) framework.
 
-## Effects
+## Purpose
 
 - Extracts Jira issue ID from branch name and pre-pends it as `[ISSUE-123]` to your commit message
 - Validates branch name and fails if it does not contain ticket ID (and optionally other configured prefixes)
@@ -65,7 +65,7 @@ default_stages: [pre-commit]
 
 repos:
   - repo: git@github.com:elroyair/jira-commit-msg.git
-    rev: latest_git_sha or release-tag
+    rev: v0.9.0
     hooks:
       - id: jira-commit-msg
 ```
