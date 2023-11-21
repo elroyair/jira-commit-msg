@@ -64,7 +64,7 @@ default_install_hook_types: [pre-commit, commit-msg]
 default_stages: [pre-commit]
 
 repos:
-  - repo: git@github.com:elroyair/jira-commit-msg.git
+  - repo: https://github.com/elroyair/jira-commit-msg
     rev: v0.9.0
     hooks:
       - id: jira-commit-msg
