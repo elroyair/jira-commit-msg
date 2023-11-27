@@ -11,6 +11,7 @@ argparse = "^1.4.0"
 GitPython = "^3.1.27"
 jira = "^3.5.2"
 python-dotenv = "^1.0.0"
+pprint36 = "^3.9.16.0"
 PyYAML = "^6.0.0"
 
 [tool.poetry.scripts]

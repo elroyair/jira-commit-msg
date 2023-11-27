@@ -228,6 +228,17 @@ files = [
 ]
 
 [[package]]
+name = "pprint36"
+version = "3.9.16.0"
+description = "Backport of pprint from Python 3.9 to Python 3.6-3.8"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "pprint36-3.9.16.0-py3-none-any.whl", hash = "sha256:5500e214fff19656c8c23ce9d4a5cfac93e58c4968b3f81eac2b7ec57ef9fe02"},
+    {file = "pprint36-3.9.16.0.tar.gz", hash = "sha256:31b0e7d1a06e9cd73e90d2aa0b58caaf7341b15a24282777952d1b571a7ec993"},
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.0"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -394,4 +405,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.11"
-content-hash = "8095606ae7c3901e768187774788e9345640452bdec7518e9f8cdc73fa72b174"
+content-hash = "0fbe30b694177e1c9af3eab597ee05d97df580b8f39ea78ae6d6133e847ef071"

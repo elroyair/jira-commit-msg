@@ -12,6 +12,7 @@ import git
 import yaml
 from dotenv import load_dotenv
 from jira import JIRA
+import pprint
 
 SCRIPT_NAME = "jira-commit-msg"
 CONFIG_FILE_NAME = f".{SCRIPT_NAME}-config.yaml"
@@ -23,12 +24,14 @@ class CommitMsgConfig:
     excluded_branches: list[str]
     accepted_branch_prefixes: list[str]
     branches_re: str
+    excluded_branches_re: str
 
     def __init__(self, config_file_path: Path):
         self.atlassian_url = ""
         self.excluded_branches = []
         self.accepted_branch_prefixes = []
         self.branches_re = r"(\w+-\d+)"
+        self.excluded_branches_re = ""
         if config_file_path.is_file():
             with config_file_path.open("r") as file:
                 repo_config = yaml.unsafe_load(file)
@@ -36,6 +39,7 @@ class CommitMsgConfig:
                     self.atlassian_url = repo_config["atlassian_url"]
                 if "excluded_branches" in repo_config.keys():
                     self.excluded_branches = repo_config["excluded_branches"]
+                    self.excluded_branches_re = "(" + "|".join(self.excluded_branches) + ")"
                 if "accepted_branch_prefixes" in repo_config.keys():
                     self.accepted_branch_prefixes = repo_config[
                         "accepted_branch_prefixes"
@@ -51,8 +55,7 @@ class CommitMsgConfig:
     def is_branch_excluded(self, branch: str) -> bool:
         if len(self.excluded_branches) == 0:
             return True
-        excl_branches_re = "(" + "|".join(self.excluded_branches) + ")"
-        return re.match(excl_branches_re, branch) is not None
+        return re.match(self.excluded_branches_re, branch) is not None
 
     def is_branch_valid(self, branch: str) -> bool:
         return re.match(self.branches_re, branch) is not None
@@ -176,7 +179,8 @@ def main():
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
-        print(f"Config: {config}")
+        print(f"Config:")
+        pprint.pp(config, width=80)
 
     sys.exit(
         enforce_hook(
