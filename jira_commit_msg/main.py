@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
+import argparse
 import os
+import pprint
 import re
 import sys
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
 
-import argparse
 import git
 import yaml
 from dotenv import load_dotenv
 from jira import JIRA
-import pprint
 
 SCRIPT_NAME = "jira-commit-msg"
 CONFIG_FILE_NAME = f".{SCRIPT_NAME}-config.yaml"
@@ -39,7 +39,9 @@ class CommitMsgConfig:
                     self.atlassian_url = repo_config["atlassian_url"]
                 if "excluded_branches" in repo_config.keys():
                     self.excluded_branches = repo_config["excluded_branches"]
-                    self.excluded_branches_re = "(" + "|".join(self.excluded_branches) + ")"
+                    self.excluded_branches_re = (
+                        "(" + "|".join(self.excluded_branches) + ")"
+                    )
                 if "accepted_branch_prefixes" in repo_config.keys():
                     self.accepted_branch_prefixes = repo_config[
                         "accepted_branch_prefixes"
@@ -86,8 +88,10 @@ def enforce_hook(
             print(f"{SCRIPT_NAME}: excluded branch `{branch}`")
             return 0
         else:
-            print(f"{SCRIPT_NAME}: ERROR! Incorrect branch name `{branch}`\n"
-                  f"    Should be prefix/ABC-123, where prefix is one of: {config.accepted_branch_prefixes}")
+            print(
+                f"{SCRIPT_NAME}: ERROR! Incorrect branch name `{branch}`\n"
+                f"    Should be prefix/ABC-123, where prefix is one of: {config.accepted_branch_prefixes}"
+            )
             return 1
 
     issue = config.extract_ticket_id(branch)
@@ -139,9 +143,8 @@ def main():
 
     parser = argparse.ArgumentParser(
         description="Description.",
-        usage="\n"
-              "Usage",
-        )
+        usage="\n" "Usage",
+    )
     parser.add_argument(
         "--verbose",
         "-v",
@@ -156,14 +159,14 @@ def main():
     )
     parser.add_argument(
         "git_branch",
-        nargs='?',
+        nargs="?",
         type=str,
         default=get_git_branch_name(Path.cwd()),
         help="Git branch",
     )
     parser.add_argument(
         "config_file_path",
-        nargs='?',
+        nargs="?",
         type=path_arg,
         default=Path.cwd() / CONFIG_FILE_NAME,
         help="Path to config file, should be in repo root when run by pre-commit",
@@ -179,12 +182,14 @@ def main():
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
-        print(f"Config:")
+        print("Config:")
         pprint.pp(config, width=80)
 
     sys.exit(
         enforce_hook(
-            config=config, branch=args.git_branch, commit_msg_filepath=args.commit_message_file
+            config=config,
+            branch=args.git_branch,
+            commit_msg_filepath=args.commit_message_file,
         )
     )
 

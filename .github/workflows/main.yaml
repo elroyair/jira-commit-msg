@@ -47,6 +47,6 @@ jobs:
       - name: Test run
         run: |
           echo "some text" > dummyfile
-          poetry run jira-commit-msg ./dummyfile hotfix/TEST-123_do_something ./.jira-commit-msg-config.yaml -v
+          poetry run jira-commit-msg --vebrose ./dummyfile hotfix/TEST-123_do_something ./.jira-commit-msg-config.yaml
           cat ./dummyfile
           cat ./dummyfile | grep "\[TEST-123\] some text"
