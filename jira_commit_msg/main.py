@@ -145,15 +145,14 @@ def main():
     load_dotenv()
 
     parser = argparse.ArgumentParser(
-        description="Description.",
-        usage="\n" "Usage",
+        description="Script to enforce branch naming and add issue IDs to commit messages."
     )
     parser.add_argument(
         "--verbose",
         "-v",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Verbose output",
+        help="Provide additionally verbose output",
     )
     parser.add_argument(
         "commit_message_file",
@@ -165,14 +164,14 @@ def main():
         nargs="?",
         type=str,
         default=get_git_branch_name(Path.cwd()),
-        help="Git branch",
+        help="Git branch, tries to auto-determine if not provided",
     )
     parser.add_argument(
         "config_file_path",
         nargs="?",
         type=path_arg,
         default=Path.cwd() / CONFIG_FILE_NAME,
-        help="Path to config file, should be in repo root when run by pre-commit",
+        help=f"Path to config file, defaults to {CONFIG_FILE_NAME} in repo root",
     )
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
