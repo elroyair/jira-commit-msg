@@ -153,12 +153,14 @@ def main():
     )
     parser.add_argument(
         "git_branch",
+        nargs='?',
         type=str,
         default=get_git_branch_name(Path.cwd()),
         help="Git branch",
     )
     parser.add_argument(
         "config_file_path",
+        nargs='?',
         type=path_arg,
         default=Path.cwd() / CONFIG_FILE_NAME,
         help="Path to config file, should be in repo root when run by pre-commit",
