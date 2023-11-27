@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+import argparse
 import os
+import pprint
 import re
 import sys
 from contextlib import suppress
@@ -22,12 +24,14 @@ class CommitMsgConfig:
     excluded_branches: list[str]
     accepted_branch_prefixes: list[str]
     branches_re: str
+    excluded_branches_re: str
 
     def __init__(self, config_file_path: Path):
         self.atlassian_url = ""
         self.excluded_branches = []
         self.accepted_branch_prefixes = []
         self.branches_re = r"(\w+-\d+)"
+        self.excluded_branches_re = ""
         if config_file_path.is_file():
             with config_file_path.open("r") as file:
                 repo_config = yaml.unsafe_load(file)
@@ -35,6 +39,9 @@ class CommitMsgConfig:
                     self.atlassian_url = repo_config["atlassian_url"]
                 if "excluded_branches" in repo_config.keys():
                     self.excluded_branches = repo_config["excluded_branches"]
+                    self.excluded_branches_re = (
+                        "(" + "|".join(self.excluded_branches) + ")"
+                    )
                 if "accepted_branch_prefixes" in repo_config.keys():
                     self.accepted_branch_prefixes = repo_config[
                         "accepted_branch_prefixes"
@@ -50,8 +57,7 @@ class CommitMsgConfig:
     def is_branch_excluded(self, branch: str) -> bool:
         if len(self.excluded_branches) == 0:
             return True
-        excl_branches_re = "(" + "|".join(self.excluded_branches) + ")"
-        return re.match(excl_branches_re, branch) is not None
+        return re.match(self.excluded_branches_re, branch) is not None
 
     def is_branch_valid(self, branch: str) -> bool:
         return re.match(self.branches_re, branch) is not None
@@ -82,7 +88,10 @@ def enforce_hook(
             print(f"{SCRIPT_NAME}: excluded branch `{branch}`")
             return 0
         else:
-            print(f"{SCRIPT_NAME}: ERROR! Incorrect branch name `{branch}`")
+            print(
+                f"{SCRIPT_NAME}: ERROR! Incorrect branch name `{branch}`\n"
+                f"    Should be prefix/ABC-123, where prefix is one of: {config.accepted_branch_prefixes}"
+            )
             return 1
 
     issue = config.extract_ticket_id(branch)
@@ -120,44 +129,69 @@ def enforce_hook(
         return 0
 
 
+def path_arg(path: str) -> Path:
+    return Path(path).resolve()
+
+
+def get_git_branch_name(root_search_path: Path) -> str:
+    ret = ""
+    with suppress(Exception):
+        repo = git.Repo(root_search_path, search_parent_directories=True)
+        ret = repo.active_branch.name
+    return ret
+
+
 def main():
     load_dotenv()
 
-    # This should always be passed in by pre-commit for commit-msg stage hooks
-    commit_message_file = Path(sys.argv[1]).resolve()
+    parser = argparse.ArgumentParser(
+        description="Script to enforce branch naming and add issue IDs to commit messages."
+    )
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Provide additionally verbose output",
+    )
+    parser.add_argument(
+        "commit_message_file",
+        type=path_arg,
+        help="Path to commit message file, should always be passed in by pre-commit",
+    )
+    parser.add_argument(
+        "git_branch",
+        nargs="?",
+        type=str,
+        default=get_git_branch_name(Path.cwd()),
+        help="Git branch, tries to auto-determine if not provided",
+    )
+    parser.add_argument(
+        "config_file_path",
+        nargs="?",
+        type=path_arg,
+        default=Path.cwd() / CONFIG_FILE_NAME,
+        help=f"Path to config file, defaults to {CONFIG_FILE_NAME} in repo root",
+    )
+    args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
-    git_branch = ""
-    if len(sys.argv) > 2:
-        # pass branch in for testing purposes only
-        git_branch = sys.argv[2]
-    else:
-        # otherwise get it from git
-        root_search_path = Path.cwd()
-        repo = git.Repo(root_search_path, search_parent_directories=True)
-        git_branch = repo.active_branch.name
-
-    # This should be run from repo root by pre-commit
-    config_file_path = Path.cwd() / CONFIG_FILE_NAME
-    if len(sys.argv) > 3:
-        # For testing, can be supplied by parameter
-        config_file_path = Path(sys.argv[3])
-
-    verbose = len(sys.argv) > 4 and sys.argv[4] == "-v"
-
-    if verbose:
+    if args.verbose:
         print(
-            f"commit_message_file={commit_message_file}\n"
-            f"git_branch={git_branch}\n"
-            f"config_file_path={config_file_path}"
+            f"commit_message_file={args.commit_message_file}\n"
+            f"git_branch={args.git_branch}\n"
+            f"config_file_path={args.config_file_path}"
         )
 
-    config = CommitMsgConfig(config_file_path)
-    if verbose:
-        print(f"Config: {config}")
+    config = CommitMsgConfig(args.config_file_path)
+    if args.verbose:
+        print("Config:")
+        pprint.pp(config, width=80)
 
     sys.exit(
         enforce_hook(
-            config=config, branch=git_branch, commit_msg_filepath=commit_message_file
+            config=config,
+            branch=args.git_branch,
+            commit_msg_filepath=args.commit_message_file,
         )
     )
 
