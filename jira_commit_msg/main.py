@@ -134,8 +134,11 @@ def path_arg(path: str) -> Path:
 
 
 def get_git_branch_name(root_search_path: Path) -> str:
-    repo = git.Repo(root_search_path, search_parent_directories=True)
-    return repo.active_branch.name
+    ret = ""
+    with suppress(Exception):
+        repo = git.Repo(root_search_path, search_parent_directories=True)
+        ret = repo.active_branch.name
+    return ret
 
 
 def main():

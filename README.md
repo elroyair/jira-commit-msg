@@ -77,12 +77,12 @@ The `default` settings ensure that you install `commit-msg` hooks with `pre-comm
 To test-run the hook, you may start `main.py` with parameters as follows:
 
 ```shell
-poetry run jira-commit-msg commit-message-file branch_name path/to/.config-file -v
+poetry run jira-commit-msg --verbose commit-message-file branch_name path/to/.config-file
 ```
 
 Where:
 
+- `--verbose/-v` - optionally produce verbose output
 - `commit-message-file` - file to potentially prepend (mandatory)
 - `branch_name` - optionally provide branch name, otherwise will be retrieved from Git
 - `path/to/.config-file` - optionally provide path to config file, otherwise will be assumed to be `.jira-commit-msg-config.yaml` at Git repo root
-- `-v` - optionally produce verbose output
