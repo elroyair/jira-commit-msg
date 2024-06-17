@@ -9,6 +9,7 @@ import traceback
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 import git
 import yaml
@@ -74,17 +75,18 @@ class CommitMsgConfig:
             return re.match(self.branches_re, branch).group(2)
         return re.match(self.branches_re, branch).group(1)
 
-    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> bool:
+    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> Optional[str]:
         try:
             jira = JIRA(
                 options={"server": self.atlassian_url, "rest_api_version": "3"},
                 basic_auth=(jira_user, jira_key),
             )
             issue = jira.issue(issue_id)
-            return issue.key == issue_id
+            if issue.key == issue_id:
+                return issue.fields.summary
         except Exception as e:
             print(f"Could not fetch data from JIRA for user {jira_user}: {e} \n{traceback.format_exc()}")
-        return False
+        return None
 
 
 def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path, jira_user: str, jira_key: str) -> int:
@@ -104,15 +106,12 @@ def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path
     print(f"{SCRIPT_NAME}: branch for issue `{issue}`")
 
     if config.atlassian_url:
-        # To test script locally create a .env file with the following 2 values to
-        # reflect your personal credentials
-        if not config.validate_against_jira(
-            issue_id=issue,
-            jira_user=jira_user,
-            jira_key=jira_key,
-        ):
+        # To test script locally create a .env file with the following 2 values to reflect your personal credentials
+        validation = config.validate_against_jira(issue_id=issue, jira_user=jira_user, jira_key=jira_key)
+        if not validation:
             print(f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!")
             return 1
+        print(f"{SCRIPT_NAME}: [{issue}] {validation}")
     else:
         print(f"{SCRIPT_NAME}: No Atlassian URL provided, cannot confirm that the ticket exists")
 
@@ -174,7 +173,7 @@ def main():
 
     with new_cd(args.config_file_path.parent):
         if args.verbose:
-            print(f"Starting dotenv search in {os.getcwd()}")
+            print(f"Starting dotenv search in {Path.cwd()}")
         load_dotenv(dotenv_path=find_dotenv(usecwd=True), verbose=args.verbose)
 
     jira_user = os.environ.get("JIRA_USER")
