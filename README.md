@@ -68,9 +68,11 @@ repos:
     rev: v0.9.0
     hooks:
       - id: jira-commit-msg
+        args: ["--verbose"]
+        verbose: true
 ```
 
-The `default` settings ensure that you install `commit-msg` hooks with `pre-commit install`, but also so that all hooks that do not specify `stage` do not install and run twice, once for `pre-commit` and then for `commit-msg`. Our hook is already configured to only run on `commit-msg`.
+The `default` settings ensure that you install `commit-msg` hooks with `pre-commit install`, but also so that all hooks that do not specify `stage` do not install and run twice, once for `pre-commit` and then for `commit-msg`. Our hook is already configured to only run on `commit-msg`. The optional `args: ["--verbose"]` provides additional verbosity, such as full printout of configuration and detected environment variables.
 
 ## Development
 
