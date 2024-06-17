@@ -6,7 +6,7 @@ import pprint
 import re
 import sys
 import traceback
-from contextlib import suppress
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -17,6 +17,22 @@ from jira import JIRA
 
 SCRIPT_NAME = "jira-commit-msg"
 CONFIG_FILE_NAME = f".{SCRIPT_NAME}-config.yaml"
+
+
+@contextmanager
+def new_cd(new_path: Path):
+    old_path = Path.cwd()
+
+    # This could raise an exception, but it's probably best to let it propagate and let the caller deal with it
+    os.chdir(new_path)
+
+    try:
+        yield
+
+    finally:
+        # This could also raise an exception, but you *really* aren't equipped to figure out what went wrong if the
+        # old working directory can't be restored.
+        os.chdir(old_path)
 
 
 @dataclass
@@ -156,7 +172,8 @@ def main():
     )
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
-    load_dotenv(verbose=args.verbose)
+    with new_cd(args.config_file_path.parent):
+        load_dotenv(verbose=args.verbose)
 
     if args.verbose:
         print(
@@ -165,7 +182,7 @@ def main():
             f"config_file_path={args.config_file_path}"
         )
         print(f"JIRA_USER = {os.environ.get("JIRA_USER")}")
-        print(f"JIRA_KEY = {os.environ.get("JIRA_KEY")}")
+        print(f"JIRA_KEY = {'*' * len(os.environ.get("JIRA_KEY"))}")
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
