@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v4.6.0
     hooks:
       - id: trailing-whitespace
       - id: end-of-file-fixer
@@ -16,36 +16,36 @@ repos:
       - id: requirements-txt-fixer # sorts entries in requirements.txt.
 
   - repo: https://github.com/psf/black
-    rev: "23.11.0"
+    rev: "24.4.2"
     hooks:
       - id: black
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         files: \.(js|ts|jsx|tsx|css|less|html|json|yaml|yml|markdown|md)$
 
   - repo: https://github.com/dosisod/refurb
-    rev: v1.23.0
+    rev: v2.0.0
     hooks:
       - id: refurb
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+    rev: 5.13.2
     hooks:
       - id: isort
         name: isort (python)
         args: ["--profile", "black", "--filter-files", "--line-length", "120"]
 
   - repo: https://github.com/PyCQA/flake8
-    rev: "6.1.0"
+    rev: "7.1.0"
     hooks:
       - id: flake8
         name: flake8 (python)
         args: ["--max-line-length=120", "--extend-ignore=E203,E501"]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
-    rev: v0.37.0
+    rev: v0.41.0
     hooks:
       - id: markdownlint-fix
