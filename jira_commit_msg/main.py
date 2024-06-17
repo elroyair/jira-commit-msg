@@ -12,7 +12,7 @@ from pathlib import Path
 
 import git
 import yaml
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from jira import JIRA
 
 SCRIPT_NAME = "jira-commit-msg"
@@ -87,7 +87,7 @@ class CommitMsgConfig:
         return False
 
 
-def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path) -> int:
+def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path, jira_user: str, jira_key: str) -> int:
     if not config.is_branch_valid(branch):
         if config.is_branch_excluded(branch):
             print(f"{SCRIPT_NAME}: excluded branch `{branch}`")
@@ -108,8 +108,8 @@ def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path
         # reflect your personal credentials
         if not config.validate_against_jira(
             issue_id=issue,
-            jira_user=os.environ.get("JIRA_USER"),
-            jira_key=os.environ.get("JIRA_KEY"),
+            jira_user=jira_user,
+            jira_key=jira_key,
         ):
             print(f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!")
             return 1
@@ -173,7 +173,10 @@ def main():
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
     with new_cd(args.config_file_path.parent):
-        load_dotenv(verbose=args.verbose)
+        load_dotenv(dotenv_path=find_dotenv(usecwd=False), verbose=args.verbose)
+
+    jira_user = os.environ.get("JIRA_USER")
+    jira_key = os.environ.get("JIRA_KEY", "")
 
     if args.verbose:
         print(
@@ -181,8 +184,8 @@ def main():
             f"git_branch={args.git_branch}\n"
             f"config_file_path={args.config_file_path}"
         )
-        print(f"JIRA_USER = {os.environ.get("JIRA_USER")}")
-        print(f"JIRA_KEY = {'*' * len(os.environ.get("JIRA_KEY"))}")
+        print(f"JIRA_USER = {jira_user}")
+        print(f"JIRA_KEY = {'*' * len(jira_key)}")
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
@@ -194,6 +197,8 @@ def main():
             config=config,
             branch=args.git_branch,
             commit_msg_filepath=args.commit_message_file,
+            jira_user=jira_user,
+            jira_key=jira_key,
         )
     )
 
