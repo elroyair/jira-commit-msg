@@ -67,7 +67,7 @@ class CommitMsgConfig:
             issue = jira.issue(issue_id)
             return issue.key == issue_id
         except Exception as e:
-            print(f"Could not fetch data from JIRA: {e} \n{traceback.format_exc()}")
+            print(f"Could not fetch data from JIRA for user {jira_user}: {e} \n{traceback.format_exc()}")
         return False
 
 
