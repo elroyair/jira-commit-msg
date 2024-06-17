@@ -6,7 +6,7 @@ authors = ["Elroy Air <github@elroyair.com>"]
 repository = "https://github.com/elroyair/jira-commit-msg"
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = ">=3.9"
 argparse = "^1.4.0"
 GitPython = "^3.1.27"
 jira = "^3.5.2"
