@@ -173,7 +173,9 @@ def main():
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
     with new_cd(args.config_file_path.parent):
-        load_dotenv(dotenv_path=find_dotenv(usecwd=False), verbose=args.verbose)
+        if args.verbose:
+            print(f"Starting dotenv search in {os.getcwd()}")
+        load_dotenv(dotenv_path=find_dotenv(usecwd=True), verbose=args.verbose)
 
     jira_user = os.environ.get("JIRA_USER")
     jira_key = os.environ.get("JIRA_KEY", "")
