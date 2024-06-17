@@ -125,8 +125,6 @@ def get_git_branch_name(root_search_path: Path) -> str:
 
 
 def main():
-    load_dotenv()
-
     parser = argparse.ArgumentParser(
         description="Script to enforce branch naming and add issue IDs to commit messages."
     )
@@ -158,12 +156,16 @@ def main():
     )
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
+    load_dotenv(verbose=args.verbose)
+
     if args.verbose:
         print(
             f"commit_message_file={args.commit_message_file}\n"
             f"git_branch={args.git_branch}\n"
             f"config_file_path={args.config_file_path}"
         )
+        print(f"JIRA_USER = {os.environ.get("JIRA_USER")}")
+        print(f"JIRA_KEY = {os.environ.get("JIRA_KEY")}")
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
