@@ -5,6 +5,7 @@ import os
 import pprint
 import re
 import sys
+import traceback
 from contextlib import suppress
 from dataclasses import dataclass
 from pathlib import Path
@@ -58,13 +59,15 @@ class CommitMsgConfig:
         return re.match(self.branches_re, branch).group(1)
 
     def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> bool:
-        jira = JIRA(
-            options={"server": self.atlassian_url, "rest_api_version": "3"},
-            basic_auth=(jira_user, jira_key),
-        )
-        with suppress(Exception):
+        try:
+            jira = JIRA(
+                options={"server": self.atlassian_url, "rest_api_version": "3"},
+                basic_auth=(jira_user, jira_key),
+            )
             issue = jira.issue(issue_id)
             return issue.key == issue_id
+        except Exception as e:
+            print(f"Could not fetch data from JIRA: {e} \n{traceback.format_exc()}")
         return False
 
 
