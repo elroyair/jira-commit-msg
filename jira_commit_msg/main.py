@@ -39,23 +39,13 @@ class CommitMsgConfig:
                     self.atlassian_url = repo_config["atlassian_url"]
                 if "excluded_branches" in repo_config.keys():
                     self.excluded_branches = repo_config["excluded_branches"]
-                    self.excluded_branches_re = (
-                        "(" + "|".join(self.excluded_branches) + ")"
-                    )
+                    self.excluded_branches_re = "(" + "|".join(self.excluded_branches) + ")"
                 if "accepted_branch_prefixes" in repo_config.keys():
-                    self.accepted_branch_prefixes = repo_config[
-                        "accepted_branch_prefixes"
-                    ]
-                    self.branches_re = (
-                        "("
-                        + "|".join(self.accepted_branch_prefixes)
-                        + ")"
-                        + r"\/"
-                        + self.branches_re
-                    )
+                    self.accepted_branch_prefixes = repo_config["accepted_branch_prefixes"]
+                    self.branches_re = "(" + "|".join(self.accepted_branch_prefixes) + ")" + r"\/" + self.branches_re
 
     def is_branch_excluded(self, branch: str) -> bool:
-        if len(self.excluded_branches) == 0:
+        if not self.excluded_branches:
             return True
         return re.match(self.excluded_branches_re, branch) is not None
 
@@ -63,15 +53,13 @@ class CommitMsgConfig:
         return re.match(self.branches_re, branch) is not None
 
     def extract_ticket_id(self, branch: str) -> str:
-        if len(self.accepted_branch_prefixes) > 0:
+        if self.accepted_branch_prefixes:
             return re.match(self.branches_re, branch).group(2)
         return re.match(self.branches_re, branch).group(1)
 
-    def validate_against_jira(
-        self, issue_id: str, jira_user: str, jira_key: str
-    ) -> bool:
+    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> bool:
         jira = JIRA(
-            options={"server": f"{self.atlassian_url}", "rest_api_version": "3"},
+            options={"server": self.atlassian_url, "rest_api_version": "3"},
             basic_auth=(jira_user, jira_key),
         )
         with suppress(Exception):
@@ -80,9 +68,7 @@ class CommitMsgConfig:
         return False
 
 
-def enforce_hook(
-    config: CommitMsgConfig, branch: str, commit_msg_filepath: Path
-) -> int:
+def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path) -> int:
     if not config.is_branch_valid(branch):
         if config.is_branch_excluded(branch):
             print(f"{SCRIPT_NAME}: excluded branch `{branch}`")
@@ -98,7 +84,7 @@ def enforce_hook(
 
     print(f"{SCRIPT_NAME}: branch for issue `{issue}`")
 
-    if len(config.atlassian_url) != 0:
+    if config.atlassian_url:
         # To test script locally create a .env file with the following 2 values to
         # reflect your personal credentials
         if not config.validate_against_jira(
@@ -106,22 +92,16 @@ def enforce_hook(
             jira_user=os.environ.get("JIRA_USER"),
             jira_key=os.environ.get("JIRA_KEY"),
         ):
-            print(
-                f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!"
-            )
+            print(f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!")
             return 1
     else:
-        print(
-            f"{SCRIPT_NAME}: No Atlassian URL provided, cannot confirm that the ticket exists"
-        )
+        print(f"{SCRIPT_NAME}: No Atlassian URL provided, cannot confirm that the ticket exists")
 
     with commit_msg_filepath.open("r+") as file:
         commit_msg = file.read()
         required_message = f"[{issue}]"
         if commit_msg.startswith(required_message):
-            print(
-                f"{SCRIPT_NAME}: commit message already starts with {required_message}"
-            )
+            print(f"{SCRIPT_NAME}: commit message already starts with {required_message}")
             return 0
         print(f"{SCRIPT_NAME}: prepending {required_message} to {commit_msg_filepath}")
         file.seek(0, 0)
