@@ -5,17 +5,34 @@ import os
 import pprint
 import re
 import sys
-from contextlib import suppress
+import traceback
+from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
 
 import git
 import yaml
-from dotenv import load_dotenv
+from dotenv import find_dotenv, load_dotenv
 from jira import JIRA
 
 SCRIPT_NAME = "jira-commit-msg"
 CONFIG_FILE_NAME = f".{SCRIPT_NAME}-config.yaml"
+
+
+@contextmanager
+def new_cd(new_path: Path):
+    old_path = Path.cwd()
+
+    # This could raise an exception, but it's probably best to let it propagate and let the caller deal with it
+    os.chdir(new_path)
+
+    try:
+        yield
+
+    finally:
+        # This could also raise an exception, but you *really* aren't equipped to figure out what went wrong if the
+        # old working directory can't be restored.
+        os.chdir(old_path)
 
 
 @dataclass
@@ -39,23 +56,13 @@ class CommitMsgConfig:
                     self.atlassian_url = repo_config["atlassian_url"]
                 if "excluded_branches" in repo_config.keys():
                     self.excluded_branches = repo_config["excluded_branches"]
-                    self.excluded_branches_re = (
-                        "(" + "|".join(self.excluded_branches) + ")"
-                    )
+                    self.excluded_branches_re = "(" + "|".join(self.excluded_branches) + ")"
                 if "accepted_branch_prefixes" in repo_config.keys():
-                    self.accepted_branch_prefixes = repo_config[
-                        "accepted_branch_prefixes"
-                    ]
-                    self.branches_re = (
-                        "("
-                        + "|".join(self.accepted_branch_prefixes)
-                        + ")"
-                        + r"\/"
-                        + self.branches_re
-                    )
+                    self.accepted_branch_prefixes = repo_config["accepted_branch_prefixes"]
+                    self.branches_re = "(" + "|".join(self.accepted_branch_prefixes) + ")" + r"\/" + self.branches_re
 
     def is_branch_excluded(self, branch: str) -> bool:
-        if len(self.excluded_branches) == 0:
+        if not self.excluded_branches:
             return True
         return re.match(self.excluded_branches_re, branch) is not None
 
@@ -63,26 +70,25 @@ class CommitMsgConfig:
         return re.match(self.branches_re, branch) is not None
 
     def extract_ticket_id(self, branch: str) -> str:
-        if len(self.accepted_branch_prefixes) > 0:
+        if self.accepted_branch_prefixes:
             return re.match(self.branches_re, branch).group(2)
         return re.match(self.branches_re, branch).group(1)
 
-    def validate_against_jira(
-        self, issue_id: str, jira_user: str, jira_key: str
-    ) -> bool:
-        jira = JIRA(
-            options={"server": f"{self.atlassian_url}", "rest_api_version": "3"},
-            basic_auth=(jira_user, jira_key),
-        )
-        with suppress(Exception):
+    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> str | None:
+        try:
+            jira = JIRA(
+                options={"server": self.atlassian_url, "rest_api_version": "3"},
+                basic_auth=(jira_user, jira_key),
+            )
             issue = jira.issue(issue_id)
-            return issue.key == issue_id
-        return False
+            if issue.key == issue_id:
+                return issue.fields.summary
+        except Exception as e:
+            print(f"Could not fetch data from JIRA for user {jira_user}: {e} \n{traceback.format_exc()}")
+        return None
 
 
-def enforce_hook(
-    config: CommitMsgConfig, branch: str, commit_msg_filepath: Path
-) -> int:
+def enforce_hook(config: CommitMsgConfig, branch: str, commit_msg_filepath: Path, jira_user: str, jira_key: str) -> int:
     if not config.is_branch_valid(branch):
         if config.is_branch_excluded(branch):
             print(f"{SCRIPT_NAME}: excluded branch `{branch}`")
@@ -98,30 +104,21 @@ def enforce_hook(
 
     print(f"{SCRIPT_NAME}: branch for issue `{issue}`")
 
-    if len(config.atlassian_url) != 0:
-        # To test script locally create a .env file with the following 2 values to
-        # reflect your personal credentials
-        if not config.validate_against_jira(
-            issue_id=issue,
-            jira_user=os.environ.get("JIRA_USER"),
-            jira_key=os.environ.get("JIRA_KEY"),
-        ):
-            print(
-                f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!"
-            )
+    if config.atlassian_url:
+        # To test script locally create a .env file with the following 2 values to reflect your personal credentials
+        validation = config.validate_against_jira(issue_id=issue, jira_user=jira_user, jira_key=jira_key)
+        if not validation:
+            print(f"{SCRIPT_NAME}: ERROR! Issue {issue} does not exist at {config.atlassian_url}!")
             return 1
+        print(f"{SCRIPT_NAME}: [{issue}] {validation}")
     else:
-        print(
-            f"{SCRIPT_NAME}: No Atlassian URL provided, cannot confirm that the ticket exists"
-        )
+        print(f"{SCRIPT_NAME}: No Atlassian URL provided, cannot confirm that the ticket exists")
 
     with commit_msg_filepath.open("r+") as file:
         commit_msg = file.read()
         required_message = f"[{issue}]"
         if commit_msg.startswith(required_message):
-            print(
-                f"{SCRIPT_NAME}: commit message already starts with {required_message}"
-            )
+            print(f"{SCRIPT_NAME}: commit message already starts with {required_message}")
             return 0
         print(f"{SCRIPT_NAME}: prepending {required_message} to {commit_msg_filepath}")
         file.seek(0, 0)
@@ -142,8 +139,6 @@ def get_git_branch_name(root_search_path: Path) -> str:
 
 
 def main():
-    load_dotenv()
-
     parser = argparse.ArgumentParser(
         description="Script to enforce branch naming and add issue IDs to commit messages."
     )
@@ -175,12 +170,22 @@ def main():
     )
     args = parser.parse_args(args=None if sys.argv[1:] else ["--help"])
 
+    with new_cd(args.config_file_path.parent):
+        if args.verbose:
+            print(f"Starting dotenv search in {Path.cwd()}")
+        load_dotenv(dotenv_path=find_dotenv(usecwd=True), verbose=args.verbose)
+
+    jira_user = os.environ.get("JIRA_USER")
+    jira_key = os.environ.get("JIRA_KEY", "")
+
     if args.verbose:
         print(
             f"commit_message_file={args.commit_message_file}\n"
             f"git_branch={args.git_branch}\n"
             f"config_file_path={args.config_file_path}"
         )
+        print(f"JIRA_USER = {jira_user}")
+        print(f"JIRA_KEY = {'*' * len(jira_key)}")
 
     config = CommitMsgConfig(args.config_file_path)
     if args.verbose:
@@ -192,6 +197,8 @@ def main():
             config=config,
             branch=args.git_branch,
             commit_msg_filepath=args.commit_message_file,
+            jira_user=jira_user,
+            jira_key=jira_key,
         )
     )
 

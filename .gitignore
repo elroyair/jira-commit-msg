@@ -10,3 +10,6 @@ __pycache__
 # Local testing
 .env
 dummyfile
+
+# prettier-generated junk
+node_modules
