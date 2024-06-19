@@ -9,7 +9,6 @@ import traceback
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import git
 import yaml
@@ -75,7 +74,7 @@ class CommitMsgConfig:
             return re.match(self.branches_re, branch).group(2)
         return re.match(self.branches_re, branch).group(1)
 
-    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> Optional[str]:
+    def validate_against_jira(self, issue_id: str, jira_user: str, jira_key: str) -> str | None:
         try:
             jira = JIRA(
                 options={"server": self.atlassian_url, "rest_api_version": "3"},

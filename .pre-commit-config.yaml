@@ -15,36 +15,21 @@ repos:
       - id: mixed-line-ending # replaces or checks mixed line ending.
       - id: requirements-txt-fixer # sorts entries in requirements.txt.
 
-  - repo: https://github.com/psf/black
-    rev: "24.4.2"
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    # Ruff version.
+    rev: v0.4.9
     hooks:
-      - id: black
-        args: ["--line-length", "120"]
+      # Run the linter.
+      - id: ruff
+        args: [--fix]
+      # Run the formatter.
+      - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         files: \.(js|ts|jsx|tsx|css|less|html|json|yaml|yml|markdown|md)$
-
-  - repo: https://github.com/dosisod/refurb
-    rev: v2.0.0
-    hooks:
-      - id: refurb
-
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        name: isort (python)
-        args: ["--profile", "black", "--filter-files", "--line-length", "120"]
-
-  - repo: https://github.com/PyCQA/flake8
-    rev: "7.1.0"
-    hooks:
-      - id: flake8
-        name: flake8 (python)
-        args: ["--max-line-length=120", "--extend-ignore=E203,E501"]
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.41.0
