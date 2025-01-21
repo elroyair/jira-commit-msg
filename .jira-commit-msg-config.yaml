@@ -9,4 +9,5 @@ accepted_branch_prefixes:
   - "bugfix"
   - "refactor"
   - "sandbox"
+  - "maintain"
   - "maintenance"
