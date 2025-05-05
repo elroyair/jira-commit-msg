@@ -1,6 +1,6 @@
 [project]
 name = "jira-commit-msg"
-version = "0.9.3"
+version = "0.9.4"
 description = "commit-msg hook to enforce branch naming and add issue IDs to commits"
 authors = [{ name = "Elroy Air", email = "github@elroyair.com" }]
 repository = "https://github.com/elroyair/jira-commit-msg"
