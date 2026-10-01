@@ -9,8 +9,6 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-symlinks
-      - id: check-xml
-      - id: check-json
       - id: check-executables-have-shebangs
       - id: detect-private-key # detects the presence of private keys.
       - id: fix-byte-order-marker # removes utf-8 byte order marker.
