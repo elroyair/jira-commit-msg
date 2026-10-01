@@ -24,7 +24,7 @@ JIRA_USER=user.name@company.com
 JIRA_KEY=ABCDEFGHIJKLMNOP1234567890
 ```
 
-Go your `Atlassian Account Management ⮕ Security ⮕ API Tokens` page [here](https://id.atlassian.com/manage-profile/security/api-tokens).
+Go your `Atlassian Account Management ⮕ Security ⮕ API Tokens` page: [Atlassian API tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
 
 Select `Create API token`. Give it a name, copy the value, and paste it into the `.env` file we created above.
 
