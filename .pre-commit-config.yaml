@@ -9,6 +9,8 @@ repos:
       - id: check-case-conflict
       - id: check-merge-conflict
       - id: check-symlinks
+      - id: check-xml
+      - id: check-json
       - id: check-executables-have-shebangs
       - id: detect-private-key # detects the presence of private keys.
       - id: fix-byte-order-marker # removes utf-8 byte order marker.
@@ -29,7 +31,15 @@ repos:
     rev: v3.9.9
     hooks:
       - id: prettier
-        files: \.(js|ts|jsx|tsx|css|less|html|json|yaml|yml|markdown|md)$
+        files: \.(js|ts|jsx|tsx|css|less|html|json|yaml|yml)$
+
+  - repo: https://github.com/hukkin/mdformat
+    rev: 1.0.0
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm # GitHub-Flavored Markdown support
+          - mdformat-frontmatter # YAML frontmatter support
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: v0.49.1

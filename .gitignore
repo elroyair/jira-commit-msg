@@ -13,3 +13,12 @@ dummyfile
 
 # prettier-generated junk
 node_modules
+
+# Tool caches and build outputs
+.ruff_cache
+.pytest_cache
+dist/
+*.egg-info
+
+# Credential files written by CI authentication steps
+gha-creds-*.json
