@@ -13,3 +13,6 @@ dummyfile
 
 # prettier-generated junk
 node_modules
+
+# ruff cache
+.ruff_cache

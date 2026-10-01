@@ -1,5 +1,5 @@
-# Custom configuration for the markdownlint pre-commit hook
-#   see https://github.com/DavidAnson/markdownlint
+# Config docs:
+#     https://github.com/DavidAnson/markdownlint
 
 # Default state for all rules
 default: true
@@ -107,9 +107,9 @@ MD023: true
 # MD024/no-duplicate-heading/no-duplicate-header - Multiple headings with the same content
 MD024:
   # Only check sibling headings
-  allow_different_nesting: false
+  allow_different_nesting: true
   # Only check sibling headings
-  siblings_only: false
+  siblings_only: true
 
 # MD025/single-title/single-h1 - Multiple top-level headings in the same document
 MD025:
@@ -156,7 +156,7 @@ MD032: true
 # MD033/no-inline-html - Inline HTML
 MD033:
   # Allowed elements
-  allowed_elements: [details, summary, br]
+  allowed_elements: [details, summary, br, sub, strong]
 
 # MD034/no-bare-urls - Bare URL used
 MD034: true
@@ -246,3 +246,32 @@ MD053:
   # Ignored definitions
   ignored_definitions:
     - "//"
+
+# MD054/link-image-style : Link and image style : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md054.md
+MD054:
+  # Allow autolinks
+  autolink: true
+  # Allow inline links and images
+  inline: true
+  # Allow full reference links and images
+  full: true
+  # Allow collapsed reference links and images
+  collapsed: true
+  # Allow shortcut reference links and images
+  shortcut: true
+  # Allow URLs as inline links
+  url_inline: true
+
+# MD055/table-pipe-style : Table pipe style : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md055.md
+MD055:
+  # Table pipe style
+  style: "consistent"
+
+# MD056/table-column-count : Table column count : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md056.md
+MD056: true
+
+# MD058/blanks-around-tables : Tables should be surrounded by blank lines : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md058.md
+MD058: true
+
+# MD059/descriptive-link-text : Link text should be descriptive : https://github.com/DavidAnson/markdownlint/blob/v0.38.0/doc/md059.md
+MD059: false
