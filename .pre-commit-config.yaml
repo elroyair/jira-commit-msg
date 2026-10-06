@@ -43,4 +43,4 @@ repos:
     rev: v0.49.1
     hooks:
       - id: markdownlint-fix
-        language_version: 22.20.0
+        language_version: 24.21.0
