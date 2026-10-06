@@ -75,7 +75,7 @@ default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/elroyair/jira-commit-msg
-    rev: v0.9.0
+    rev: v0.10.0
     hooks:
       - id: jira-commit-msg
         args: ["--verbose"]
